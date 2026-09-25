@@ -1,0 +1,25 @@
+# Virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Jupyter notebooks
+.ipynb_checkpoints/
+
+# Environment variables
+.env
+
+# Data files
+data/raw/*
+data/processed/*
+
+# Model files
+models/*.joblib
+
+# Documentation
+docs/*.docx
+
+# Keep .gitkeep files
+!.gitkeep
