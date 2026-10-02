@@ -1,0 +1,60 @@
+Pehle screenshot dekhne ka tareeqa batata hoon, phir Phase 3 ki complete summary.
+
+## Notebook ka visual check karne ke liye
+
+Devin ko ye prompt den:
+
+```
+Please show me a screenshot or describe the rendered output of the following cells in notebooks/03_eda.ipynb:
+1. The Churn distribution bar plot
+2. The Contract count plot
+3. The correlation heatmap
+```
+
+Ya aap khud VS Code mein `notebooks/03_eda.ipynb` file open kar ke charts dekh sakte hain — Devin ne already chala ke save kiya hai, isliye outputs notebook ke andar hi saved honge.
+
+---
+
+# Phase 3: Exploratory Data Analysis — Complete Summary
+
+## Maqsad kya tha?
+Model banane se pehle data ko "samajhna" — patterns dhoondhna, data ki shape dekhna, aur jo mila usay likh kar record karna, bina kisi data ko modify kiye.
+
+## Humne kya banaya?
+Ek notebook: `notebooks/03_eda.ipynb`, jisme 6 hisse hain:
+
+| Hissa | Kya dekha | Kyun zaroori |
+|---|---|---|
+| Target distribution | Churn: 26.54% Yes, baaqi No | Dataset imbalanced hai — ye aage metrics choose karne mein kaam aayega |
+| Numeric histograms | `tenure`, `MonthlyCharges`, `TotalCharges` ki shape | Outliers/anomalies dhoondhna, distribution samajhna |
+| Boxplots (numeric vs Churn) | Churners ka tenure kam hai, charges zyada | Pehli dafa pata chala kaunse numeric features signal de rahe hain |
+| Count plots (categorical vs Churn) | Contract, InternetService, PaymentMethod, SeniorCitizen | Business-level insights, strong categorical predictors milay |
+| Correlation heatmap | tenure-TotalCharges: 0.83 | Multicollinearity ka pata chala |
+| Observations (likhi hui) | 5 findings + causation warning | Insights ko permanent record banana |
+
+## Sabse important findings (yaad rakhne wali)
+
+1. **Contract** sabse strong predictor hai: Month-to-month = 42.71% churn, Two-year = sirf 2.83%
+2. **Tenure** — naye customers zyada churn karte hain
+3. **InternetService** — Fiber optic walay (41.89%) DSL walon (18.96%) se double churn karte hain
+4. **MonthlyCharges** — zyada bill, zyada churn
+5. **PaymentMethod** — Electronic check walay sabse zyada churn karte hain (45.29%)
+6. **SeniorCitizen** — seniors double churn karte hain non-seniors se
+7. **tenure aur TotalCharges** 0.83 correlated hain — ye do columns taqriban ek hi information de rahe hain
+
+## Sabse zaroori sabaq jo humne seekha
+
+**Correlation causation nahi hai.** Humne har pattern ko "juda hua lagta hai" bola, "wajah hai" nahi bola — kyunke ye sab patterns aapas mein bhi juday ho sakte hain (jaise naye + fiber optic + electronic check wala ek hi tarah ka customer ho sakta hai). Asal "kaunsa feature sach mein important hai" ye hum **Phase 6** mein model se pata lagayenge (feature importance ke zariye).
+
+## Phase 3 ka status: Complete ✅
+
+- ✅ Target distribution dekhi aur imbalance note kiya
+- ✅ Numeric aur categorical dono tarah ke features explore kiye
+- ✅ Correlation check kiya
+- ✅ Observations likhi (memory par bharosa nahi kiya)
+- ✅ Raw data ko bilkul touch nahi kiya — sirf dekha
+- ✅ Causation ki galti se bachne ka reminder likha
+
+---
+
+Jab tayyar hon, bata dein — phir hum commit karke **Phase 4: Split aur Preprocessing Pipeline** shuru karenge, jo sabse zyada technical phase hai (data leakage, train/test split, scaling, encoding — ye sab yahan aayega).
