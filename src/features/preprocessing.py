@@ -37,14 +37,133 @@ def clean_totalcharges(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Engineer new features based on Phase 3 EDA findings.
+
+    This function adds domain-specific features that capture business insights:
+    - is_new_customer: Newer customers (tenure < 6 months) have higher churn risk
+    - high_risk_contract: Month-to-month customers with low tenure are at highest risk
+    - avg_monthly_spend_ratio: Captures if current charges are rising relative to historical average
+    - num_services: Count of services subscribed (service engagement level)
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Input DataFrame with raw customer data. Must contain required columns.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with 4 new engineered features added.
+    """
+    df = df.copy()
+
+    # Clean TotalCharges first (handles dirty string values)
+    df = clean_totalcharges(df)
+
+    # is_new_customer: 1 if tenure < 6 months, else 0
+    # Business reasoning: Newer customers haven't established loyalty and are more likely to churn
+    df["is_new_customer"] = (df["tenure"] < 6).astype(int)
+
+    # high_risk_contract: 1 if month-to-month AND tenure < 12 months, else 0
+    # Business reasoning: Month-to-month customers with short tenure are the highest risk segment
+    df["high_risk_contract"] = (
+        (df["Contract"] == "Month-to-month") & (df["tenure"] < 12)
+    ).astype(int)
+
+    # avg_monthly_spend_ratio: MonthlyCharges / (TotalCharges / (tenure + 1) + 0.01)
+    # Business reasoning: If current monthly charges are higher than historical average,
+    # customer may be dissatisfied with price increases
+    # Add 1 to tenure to avoid division by zero for new customers
+    # Add 0.01 to denominator to avoid division by zero
+    df["avg_monthly_spend_ratio"] = df["MonthlyCharges"] / (
+        df["TotalCharges"] / (df["tenure"] + 1) + 0.01
+    )
+
+    # num_services: Count of subscribed services
+    # Business reasoning: Customers with more services are more engaged and less likely to churn
+    service_columns = [
+        "OnlineSecurity",
+        "OnlineBackup",
+        "DeviceProtection",
+        "TechSupport",
+        "StreamingTV",
+        "StreamingMovies",
+        "PhoneService"
+    ]
+    df["num_services"] = (
+        df[service_columns].apply(lambda x: (x == "Yes").sum(), axis=1) +
+        (df["InternetService"] != "No").astype(int)
+    )
+
+    return df
+
+
+def engineer_features_v2(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Engineer only non-redundant features based on Phase 3 EDA findings.
+
+    This function adds only 2 domain-specific features that are not redundant
+    with existing columns:
+    - avg_monthly_spend_ratio: Captures if current charges are rising relative to historical average
+    - num_services: Count of services subscribed (service engagement level)
+
+    Excludes is_new_customer and high_risk_contract as they are redundant with
+    existing tenure and Contract columns.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Input DataFrame with raw customer data. Must contain required columns.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with 2 new engineered features added.
+    """
+    df = df.copy()
+
+    # Clean TotalCharges first (handles dirty string values)
+    df = clean_totalcharges(df)
+
+    # avg_monthly_spend_ratio: MonthlyCharges / (TotalCharges / (tenure + 1) + 0.01)
+    # Business reasoning: If current monthly charges are higher than historical average,
+    # customer may be dissatisfied with price increases
+    # Add 1 to tenure to avoid division by zero for new customers
+    # Add 0.01 to denominator to avoid division by zero
+    df["avg_monthly_spend_ratio"] = df["MonthlyCharges"] / (
+        df["TotalCharges"] / (df["tenure"] + 1) + 0.01
+    )
+
+    # num_services: Count of subscribed services
+    # Business reasoning: Customers with more services are more engaged and less likely to churn
+    service_columns = [
+        "OnlineSecurity",
+        "OnlineBackup",
+        "DeviceProtection",
+        "TechSupport",
+        "StreamingTV",
+        "StreamingMovies",
+        "PhoneService"
+    ]
+    df["num_services"] = (
+        df[service_columns].apply(lambda x: (x == "Yes").sum(), axis=1) +
+        (df["InternetService"] != "No").astype(int)
+    )
+
+    return df
+
+
 def build_numeric_pipeline() -> Pipeline:
     """
     Build a preprocessing pipeline for numeric columns.
 
     The pipeline performs the following steps in order:
-    1. Clean TotalCharges (strip whitespace, replace empty with NaN, convert to numeric)
-    2. Impute missing values with median
-    3. Scale features using StandardScaler
+    1. Impute missing values with median
+    2. Scale features using StandardScaler
+
+    Note: TotalCharges cleaning is now done in engineer_features() before this pipeline.
 
     Returns
     -------
@@ -52,7 +171,6 @@ def build_numeric_pipeline() -> Pipeline:
         sklearn Pipeline for numeric preprocessing.
     """
     pipeline = Pipeline([
-        ("clean_totalcharges", FunctionTransformer(clean_totalcharges)),
         ("imputer", SimpleImputer(strategy="median")),
         ("scaler", StandardScaler())
     ])
@@ -79,27 +197,31 @@ def build_categorical_pipeline() -> Pipeline:
     return pipeline
 
 
-def build_full_preprocessor() -> ColumnTransformer:
+def build_full_preprocessor() -> Pipeline:
     """
-    Build a full preprocessor that combines numeric and categorical pipelines.
+    Build a full preprocessor that applies feature engineering then column transformations.
 
-    This function creates a ColumnTransformer that applies different preprocessing
-    steps to different column types:
-    - Numeric columns: clean, impute with median, scale
-    - Categorical columns: impute with most frequent, one-hot encode
+    This function creates a Pipeline that:
+    1. Applies feature engineering (adds 4 new engineered features)
+    2. Applies ColumnTransformer for numeric and categorical preprocessing:
+       - Numeric columns: clean, impute with median, scale
+       - Categorical columns: impute with most frequent, one-hot encode
 
     Returns
     -------
-    ColumnTransformer
-        sklearn ColumnTransformer that applies appropriate preprocessing to each
-        column type.
+    Pipeline
+        sklearn Pipeline that applies feature engineering then column transformations.
     """
     # Define column lists (hardcoded for stability and explicitness)
     NUMERIC_COLUMNS = [
         "tenure",
         "MonthlyCharges",
         "TotalCharges",
-        "SeniorCitizen"
+        "SeniorCitizen",
+        "is_new_customer",
+        "high_risk_contract",
+        "avg_monthly_spend_ratio",
+        "num_services"
     ]
 
     CATEGORICAL_COLUMNS = [
@@ -121,12 +243,79 @@ def build_full_preprocessor() -> ColumnTransformer:
     ]
 
     # Build ColumnTransformer that routes columns to appropriate pipelines
-    preprocessor = ColumnTransformer(
+    column_transformer = ColumnTransformer(
         transformers=[
             ("numeric", build_numeric_pipeline(), NUMERIC_COLUMNS),
             ("categorical", build_categorical_pipeline(), CATEGORICAL_COLUMNS)
         ],
         remainder="drop"  # Drop any columns not explicitly listed
     )
+
+    # Build outer Pipeline: feature engineering first, then column transformations
+    preprocessor = Pipeline([
+        ("feature_engineering", FunctionTransformer(engineer_features)),
+        ("column_transformer", column_transformer)
+    ])
+
+    return preprocessor
+
+
+def build_full_preprocessor_v2() -> Pipeline:
+    """
+    Build a full preprocessor that applies feature engineering (v2) then column transformations.
+
+    This function creates a Pipeline that:
+    1. Applies feature engineering v2 (adds only 2 non-redundant engineered features)
+    2. Applies ColumnTransformer for numeric and categorical preprocessing:
+       - Numeric columns: clean, impute with median, scale
+       - Categorical columns: impute with most frequent, one-hot encode
+
+    Returns
+    -------
+    Pipeline
+        sklearn Pipeline that applies feature engineering (v2) then column transformations.
+    """
+    # Define column lists (hardcoded for stability and explicitness)
+    NUMERIC_COLUMNS = [
+        "tenure",
+        "MonthlyCharges",
+        "TotalCharges",
+        "SeniorCitizen",
+        "avg_monthly_spend_ratio",
+        "num_services"
+    ]
+
+    CATEGORICAL_COLUMNS = [
+        "gender",
+        "Partner",
+        "Dependents",
+        "PhoneService",
+        "MultipleLines",
+        "InternetService",
+        "OnlineSecurity",
+        "OnlineBackup",
+        "DeviceProtection",
+        "TechSupport",
+        "StreamingTV",
+        "StreamingMovies",
+        "Contract",
+        "PaperlessBilling",
+        "PaymentMethod"
+    ]
+
+    # Build ColumnTransformer that routes columns to appropriate pipelines
+    column_transformer = ColumnTransformer(
+        transformers=[
+            ("numeric", build_numeric_pipeline(), NUMERIC_COLUMNS),
+            ("categorical", build_categorical_pipeline(), CATEGORICAL_COLUMNS)
+        ],
+        remainder="drop"  # Drop any columns not explicitly listed
+    )
+
+    # Build outer Pipeline: feature engineering first, then column transformations
+    preprocessor = Pipeline([
+        ("feature_engineering", FunctionTransformer(engineer_features_v2)),
+        ("column_transformer", column_transformer)
+    ])
 
     return preprocessor
