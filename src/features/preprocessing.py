@@ -199,6 +199,68 @@ def build_categorical_pipeline() -> Pipeline:
 
 def build_full_preprocessor() -> Pipeline:
     """
+    Build a full preprocessor with NO feature engineering (original Phase 4/5 behavior).
+
+    This function creates a Pipeline that:
+    1. Cleans TotalCharges column (strips whitespace, converts to numeric)
+    2. Applies ColumnTransformer for numeric and categorical preprocessing:
+       - Numeric columns: impute with median, scale
+       - Categorical columns: impute with most frequent, one-hot encode
+
+    This is the original preprocessor used in Phase 5 baseline, which achieved
+    better Recall and F1 than the version with engineered features.
+
+    Returns
+    -------
+    Pipeline
+        sklearn Pipeline with TotalCharges cleaning + column transformations.
+    """
+    # Define column lists (original 4 numeric + 15 categorical, no engineered features)
+    NUMERIC_COLUMNS = [
+        "tenure",
+        "MonthlyCharges",
+        "TotalCharges",
+        "SeniorCitizen"
+    ]
+
+    CATEGORICAL_COLUMNS = [
+        "gender",
+        "Partner",
+        "Dependents",
+        "PhoneService",
+        "MultipleLines",
+        "InternetService",
+        "OnlineSecurity",
+        "OnlineBackup",
+        "DeviceProtection",
+        "TechSupport",
+        "StreamingTV",
+        "StreamingMovies",
+        "Contract",
+        "PaperlessBilling",
+        "PaymentMethod"
+    ]
+
+    # Build ColumnTransformer that routes columns to appropriate pipelines
+    column_transformer = ColumnTransformer(
+        transformers=[
+            ("numeric", build_numeric_pipeline(), NUMERIC_COLUMNS),
+            ("categorical", build_categorical_pipeline(), CATEGORICAL_COLUMNS)
+        ],
+        remainder="drop"  # Drop any columns not explicitly listed
+    )
+
+    # Build outer Pipeline: clean TotalCharges first, then column transformations
+    preprocessor = Pipeline([
+        ("clean_totalcharges", FunctionTransformer(clean_totalcharges)),
+        ("column_transformer", column_transformer)
+    ])
+
+    return preprocessor
+
+
+def build_full_preprocessor_with_engineered_features() -> Pipeline:
+    """
     Build a full preprocessor that applies feature engineering then column transformations.
 
     This function creates a Pipeline that:
@@ -206,6 +268,10 @@ def build_full_preprocessor() -> Pipeline:
     2. Applies ColumnTransformer for numeric and categorical preprocessing:
        - Numeric columns: clean, impute with median, scale
        - Categorical columns: impute with most frequent, one-hot encode
+
+    This version includes engineered features (is_new_customer, high_risk_contract,
+    avg_monthly_spend_ratio, num_services) which were tested in Phase 6 but found
+    to have worse Recall/F1 than the baseline.
 
     Returns
     -------
