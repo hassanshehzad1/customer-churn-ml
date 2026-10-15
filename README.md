@@ -15,9 +15,14 @@ A machine learning project to predict customer churn using binary classification
    ```
 
 3. Install dependencies:
-   ```powershell
-   pip install -r requirements.txt
-   ```
+   - For production/API use only (minimal dependencies):
+     ```powershell
+     pip install -r requirements.txt
+     ```
+   - For full local development (includes Jupyter, testing, visualization):
+     ```powershell
+     pip install -r requirements-dev.txt
+     ```
 
 ## Project Structure
 

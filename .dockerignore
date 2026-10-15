@@ -1,0 +1,41 @@
+# Virtual environment - not needed in container (we install fresh dependencies)
+.venv/
+venv/
+__pycache__/
+
+# Git files - not needed in container
+.git/
+.gitignore
+
+# Raw data - not needed for running the API (model is already trained)
+data/raw/
+
+# Notebooks - development only, not needed for production API
+notebooks/
+*.ipynb
+
+# Documentation - not needed for running the API
+docs/
+*.md
+Phases/
+
+# Tests - not needed for production container
+tests/
+.pytest_cache/
+
+# Environment files - secrets shouldn't be in container
+.env
+.env.example
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Reports - development artifacts
+reports/
