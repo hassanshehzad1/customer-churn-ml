@@ -9,6 +9,9 @@ pytest==9.1.1
 iniconfig==2.3.1
 pluggy==1.6.0
 
+# ML experiment tracking
+mlflow==2.20.0
+
 # Jupyter and notebook development
 jupyter==1.1.1
 notebook==7.6.3

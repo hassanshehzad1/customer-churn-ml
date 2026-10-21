@@ -15,8 +15,9 @@ __pycache__/
 data/raw/*
 data/processed/*
 
-# Model files
+# Model files (except the deployed pipeline which is small and should be tracked)
 models/*.joblib
+!models/churn_pipeline.joblib
 
 # Documentation
 docs/*.docx

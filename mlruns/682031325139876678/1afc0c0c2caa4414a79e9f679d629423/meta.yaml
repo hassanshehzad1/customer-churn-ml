@@ -1,0 +1,15 @@
+artifact_uri: file:///D:/customer-churn-ml/mlruns/682031325139876678/1afc0c0c2caa4414a79e9f679d629423/artifacts
+end_time: 1792577601305
+entry_point_name: ''
+experiment_id: '682031325139876678'
+lifecycle_stage: active
+run_id: 1afc0c0c2caa4414a79e9f679d629423
+run_name: config_c_class_weight_threshold_0.6
+run_uuid: 1afc0c0c2caa4414a79e9f679d629423
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1792577600945
+status: 3
+tags: []
+user_id: HP

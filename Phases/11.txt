@@ -1,0 +1,85 @@
+Chaliye **Part 1 (MLflow)** ko bilkul chhote bachay ki tarah, ek hi misaal se samjhata hoon.
+
+---
+
+## Ek Misaal: Cricket Match ka Scorebook
+
+Socho aap ek cricket team ke coach hain. Aap ne is saal **bohat saare practice matches** khele:
+- Match 1: Team A ke sath, score 150
+- Match 2: Team B ke sath, score 180
+- Match 3: Team C ke sath, score 165
+
+**Agar aap koi scorebook na rakhein**, to 3 mahine baad aap bhool jayenge "Match 2 mein humne kitna score kiya tha, aur kis strategy se?"
+
+**Agar aap ek scorebook rakhein**, jisme har match ka score, strategy, aur result likha ho, to aap **kabhi bhi** dekh sakte hain "kaunsi strategy sab se behtar thi."
+
+**MLflow wahi scorebook hai, lekin ML experiments ke liye.**
+
+---
+
+## Humare Project Mein Ye "Matches" Kaunse Hain?
+
+Yaad hai Phase 5, 6, 7 mein humne alag alag **tareeqe** try kiye the model ko behtar banane ke liye? Wo humare "practice matches" the:
+
+| Experiment | Kya Try Kiya |
+|---|---|
+| Experiment A | Logistic Regression, normal tareeqa, threshold 0.5 |
+| Experiment B | Logistic Regression, class_weight laga kar, threshold 0.5 |
+| Experiment C | Logistic Regression, class_weight laga kar, threshold 0.6 |
+| **Final** | Logistic Regression, normal tareeqa, **threshold 0.3** (jo humne chuna) |
+
+Un sab ke results humne **chat mein tables** mein dekhe, lekin **koi permanent register mein nahi** likhe.
+
+---
+
+## Part 1 Mein Hum Kya Karne Wale Hain
+
+**Sirf ek kaam:** In 4 experiments ko **MLflow ke scorebook mein likhna**.
+
+Ye 3 chhote steps mein hoga:
+
+### Step 1: MLflow install karna
+Ye ek chhoti si library hai (jaise `pandas` ya `scikit-learn`). Install hone ke baad hum isay Python code mein istemal kar sakte hain.
+
+### Step 2: Ek script likhna jo 4 experiments "likh" de
+Devin ek chhoti script banayega. Ye script har experiment ke liye ye 3 cheezein MLflow ko batayegi:
+- **Kya settings thin** (jaise "class_weight = balanced", "threshold = 0.6")
+- **Kya result aaya** (Precision, Recall, F1)
+- **Kaunsa experiment humne final chuna** (uspar ek khaas "FINAL" ka label lagana)
+
+**Dhyan dein:** Hum **model dobara train nahi kar rahe** naye tareeqe se. Hum sirf un purane experiments ko **register mein likh rahe hain**, jaise aap purane matches ka score ek naye scorebook mein copy kar dein.
+
+### Step 3: Browser mein scorebook dekhna
+Script chalane ke baad, ek command (`mlflow ui`) chalate hain. Ye aapke computer par ek **chhoti website** kholta hai (jaise `http://127.0.0.1:5000`). Us website par aapko ek **table** nazar aayegi:
+
+```
+Experiment                         | Precision | Recall | F1
+-----------------------------------|-----------|--------|------
+Baseline (threshold 0.5)           | 65.8%     | 54.9%  | 59.8%
+class_weight (threshold 0.5)       | 52.3%     | 80.5%  | 63.4%
+class_weight (threshold 0.6)       | 60.5%     | 72.2%  | 65.9%
+FINAL (threshold 0.3)              | 51.9%     | 75.4%  | 61.5%
+```
+
+Aap sab experiments **ek hi nazar mein compare** kar sakenge, aur kisi par bhi click kar ke uski tafseel dekh sakenge.
+
+---
+
+## Ye Kyun Kar Rahe Hain? (Asal Faida)
+
+Abhi humare experiments **chat ki history mein** hain. Agar aap ye chat band kar den, ya 6 mahine baad project dekhen, to **ye sab results kho jayenge**.
+
+MLflow mein likhne se:
+1. Results **hamesha ke liye saved** ho jate hain (aapke computer par ek folder mein)
+2. Koi bhi (aap, ya interviewer) **ek table mein sab dekh** sakta hai
+3. Aap interview mein **screen share kar ke** dikha sakte hain "ye mere experiments thay, aur ye mera final choice"
+
+---
+
+## Ek Line Mein Khulasa
+
+**Part 1 mein hum apne purane experiments ko ek "scorebook" (MLflow) mein likh rahe hain, taake sab results ek jagah, ek table mein, hamesha ke liye saved rahein.**
+
+---
+
+Ab samajh aaya? Agar haan, to wohi MLflow wala prompt (jo maine pehle diya tha) Devin ko de dein. Jab wo result de, yahan paste kar dein, aur hum browser mein ye "scorebook" mil kar dekhenge.

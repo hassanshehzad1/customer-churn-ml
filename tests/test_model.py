@@ -10,6 +10,13 @@ from src.data.load_data import load_raw_data
 from src.data.split import split_data
 
 
+# Skip decorator for tests requiring the raw dataset
+skip_if_no_raw_data = pytest.mark.skipif(
+    not os.path.exists("data/raw/telco_customer_churn.csv"),
+    reason="raw dataset not available (CI)"
+)
+
+
 @pytest.fixture
 def pipeline():
     """Fixture to load the pipeline once and reuse across tests."""
@@ -35,6 +42,7 @@ def test_pipeline_loads_without_error(pipeline):
     assert pipeline is not None, "Pipeline should load successfully and not be None"
 
 
+@skip_if_no_raw_data
 def test_pipeline_predicts_on_real_test_data(pipeline, X_test):
     """Test that the pipeline can predict on real test data with correct output shape."""
     predictions = pipeline.predict_proba(X_test)
@@ -46,6 +54,7 @@ def test_pipeline_predicts_on_real_test_data(pipeline, X_test):
         f"Predictions should have 2 columns (probabilities for each class), got {predictions.shape[1]}"
 
 
+@skip_if_no_raw_data
 def test_predictions_are_valid_probabilities(pipeline, X_test):
     """Test that all predicted probabilities are between 0.0 and 1.0 inclusive."""
     predictions = pipeline.predict_proba(X_test)
@@ -87,6 +96,7 @@ def test_pipeline_handles_single_row_prediction(pipeline):
         f"Single-row prediction should have shape (1, 2), got {predictions.shape}"
 
 
+@skip_if_no_raw_data
 def test_pipeline_is_deterministic(pipeline, X_test):
     """Test that the pipeline produces identical predictions for the same input.
 

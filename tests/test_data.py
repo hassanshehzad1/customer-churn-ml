@@ -1,9 +1,17 @@
 """Unit tests for data loading and validation functions."""
 
+import os
 import pandas as pd
 import pytest
 from src.data.load_data import load_raw_data
 from src.data.validate import validate_raw_data
+
+
+# Skip decorator for tests requiring the raw dataset
+skip_if_no_raw_data = pytest.mark.skipif(
+    not os.path.exists("data/raw/telco_customer_churn.csv"),
+    reason="raw dataset not available (CI)"
+)
 
 
 @pytest.fixture
@@ -12,17 +20,20 @@ def raw_df():
     return load_raw_data()
 
 
+@skip_if_no_raw_data
 def test_load_raw_data_returns_dataframe(raw_df):
     """Test that load_raw_data returns a non-empty pandas DataFrame."""
     assert isinstance(raw_df, pd.DataFrame), "load_raw_data should return a pandas DataFrame"
     assert len(raw_df) > 0, "DataFrame should not be empty"
 
 
+@skip_if_no_raw_data
 def test_load_raw_data_has_expected_shape(raw_df):
     """Test that the loaded data has the expected shape (7043, 21)."""
     assert raw_df.shape == (7043, 21), f"Expected shape (7043, 21), got {raw_df.shape}"
 
 
+@skip_if_no_raw_data
 def test_validate_raw_data_passes_on_clean_data(raw_df):
     """Test that validate_raw_data passes without exceptions on clean real data."""
     # Should not raise any exception
@@ -70,6 +81,7 @@ def test_validate_raw_data_raises_on_missing_id_column():
     assert "customerID" in str(exc_info.value), "Error message should mention missing customerID column"
 
 
+@skip_if_no_raw_data
 def test_churn_column_only_has_expected_values(raw_df):
     """Test that the Churn column only contains 'Yes' and 'No' values."""
     unique_churn_values = set(raw_df["Churn"].unique())
