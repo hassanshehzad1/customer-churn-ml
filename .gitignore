@@ -24,3 +24,11 @@ docs/*.docx
 
 # Keep .gitkeep files
 !.gitkeep
+
+# MLflow tracking
+mlruns/
+mlartifacts/
+mlflow.db
+
+# Private chat transcripts
+Phases/
