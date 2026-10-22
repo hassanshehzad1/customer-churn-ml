@@ -34,3 +34,7 @@ A machine learning project to predict customer churn using binary classification
 - `models/`: Trained model artifacts
 - `reports/`: Analysis reports and documentation
 - `docs/`: Project documentation and phase documentation
+
+## Dataset
+
+This project uses the Telco Customer Churn dataset from Kaggle. The dataset maintains its own license and is not included in this repository. To run the project, download the dataset from Kaggle and place it in `data/raw/`.
